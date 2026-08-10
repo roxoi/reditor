@@ -653,7 +653,7 @@
         ruby: ['ruby/ruby.min.js'],
         sql: ['sql/sql.min.js'],
         shell: ['shell/shell.min.js'],
-        dockerfile: ['yaml/yaml.min.js'],
+        dockerfile: ['dockerfile/dockerfile.min.js'],
       };
 
       function getCodeMirrorMode(value) {
@@ -666,6 +666,8 @@
             return 'text/x-c++src';
           case 'ini':
             return 'text/x-properties';
+          case 'dockerfile':
+            return 'dockerfile';
           case 'null':
             return null;
           default:

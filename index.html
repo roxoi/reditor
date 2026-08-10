@@ -1,609 +1,1061 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reditor | Roxoi Code Editor</title>
-   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231e1e1e' rx='40'/><g fill='%234ec9b0' stroke='%234ec9b0' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><path d='M 40 60 L 80 96 L 40 132' fill='none'/><path d='M 152 60 L 112 96 L 152 132' fill='none'/><line x1='85' y1='96' x2='107' y2='96' stroke-width='5'/> </g><circle cx='96' cy='96' r='85' fill='none' stroke='%232e9ef7' stroke-width='3' opacity='0.5'/></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css">
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231e1e1e' rx='40'/><g fill='%234ec9b0' stroke='%234ec9b0' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'><path d='M 40 60 L 80 96 L 40 132' fill='none'/><path d='M 152 60 L 112 96 L 152 132' fill='none'/><line x1='85' y1='96' x2='107' y2='96' stroke-width='5'/> </g><circle cx='96' cy='96' r='85' fill='none' stroke='%232e9ef7' stroke-width='3' opacity='0.5'/></svg>"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css"
+    />
     <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        font-family: 'Courier New', monospace;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      /* Firefox */
+      @supports (-moz-appearance: none) {
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+          scrollbar-width: thin;
+          scrollbar-color: #555 transparent;
         }
-        body {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            font-family: 'Courier New', monospace;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+      }
+
+      *.scrollbar-active {
+        scrollbar-color: #4ec9b0 transparent;
+      }
+
+      /* WebKit */
+      ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4ec9b0;
+      }
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+        background: #252526;
+        border-bottom: 1px solid #333;
+        flex-wrap: wrap;
+        align-items: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+      .toolbar-group {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding-right: 12px;
+        border-right: 1px solid #444;
+      }
+      .toolbar-group:last-child {
+        border-right: none;
+      }
+      button,
+      select,
+      input {
+        background: #333;
+        color: #ccc;
+        border: 1px solid #555;
+        padding: 8px 14px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        transition: all 0.2s;
+      }
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 9999px;
+        border-color: #444;
+        background: #2a2a2a;
+        color: #ccc;
+        transition-property: color, background-color, border-color, box-shadow;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 0.15s;
+      }
+
+      button:hover {
+        border-color: #666;
+        background: #404040;
+        color: #fff;
+      }
+
+      button:hover .icon {
+        stroke: #fff;
+      }
+
+      button:active {
+        background: #363636;
+        color: #fff;
+      }
+
+      button:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(78, 201, 176, 0.4);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        border-color: #333;
+        background: #262626;
+        color: #6f737b;
+        opacity: 0.6;
+      }
+
+      select:hover {
+        background: #404040;
+        color: #fff;
+        border-color: #666;
+      }
+      input[type='range'] {
+        width: 100px;
+        padding: 0;
+      }
+      .icon {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .status-bar {
+        display: flex;
+        gap: 20px;
+        padding: 8px 12px;
+        background: #1e1e1e;
+        border-top: 1px solid #333;
+        font-size: 11px;
+        color: #888;
+      }
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .editor-container {
+        flex: 1;
+        overflow: hidden;
+        display: flex;
+        position: relative;
+      }
+      .CodeMirror {
+        flex: 1 !important;
+        font-size: 15px;
+        height: 100%;
+      }
+      .CodeMirror-scrollbar-filler,
+      .CodeMirror-gutter-filler {
+        background-color: #1e1e1e;
+      }
+
+      /* Search Box */
+      .search-box {
+        display: none;
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        background: #2d2d30;
+        padding: 10px 12px;
+        border-radius: 6px;
+        z-index: 100;
+        border: 1px solid #555;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+        gap: 8px;
+        align-items: center;
+      }
+      .search-box.active {
+        display: flex;
+      }
+      .search-box input {
+        width: 200px;
+        padding: 7px 12px;
+        background: #1e1e1e;
+        border: 1px solid #555;
+        color: #e0e0e0;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+      .search-box input:focus {
+        outline: none;
+        border-color: #4ec9b0;
+        box-shadow: 0 0 0 2px rgba(78, 201, 176, 0.25);
+      }
+      .search-box button {
+        padding: 7px 12px;
+        font-size: 12px;
+        min-width: 36px;
+        justify-content: center;
+      }
+      .search-box .search-info {
+        font-size: 11px;
+        color: #888;
+        min-width: 70px;
+        text-align: center;
+      }
+      .search-box .search-info.has-results {
+        color: #4ec9b0;
+      }
+
+      .cm-searching {
+        background-color: #4ec9b0 !important;
+        color: #1e1e1e !important;
+        border-radius: 2px;
+      }
+      .CodeMirror-searching {
+        background-color: rgba(78, 201, 176, 0.35);
+      }
+
+      .auto-save-indicator {
+        position: absolute;
+        top: 12px;
+        right: 20px;
+        font-size: 10px;
+        color: #888;
+        z-index: 99;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .auto-save-indicator .icon {
+        width: 12px;
+        height: 12px;
+      }
+      .auto-save-indicator.saved .icon {
+        stroke: #4ec9b0;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        background: #252526;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #555;
+        min-width: 400px;
+        max-width: 600px;
+      }
+      .modal-content h3 {
+        margin-bottom: 15px;
+        color: #d4d4d4;
+      }
+      .modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: flex-end;
+      }
+
+      .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4ec9b0;
+        color: #1e1e1e;
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-size: 12px;
+        animation: slideIn 0.3s ease;
+        z-index: 2000;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
         }
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            padding: 12px;
-            background: #252526;
-            border-bottom: 1px solid #333;
-            flex-wrap: wrap;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        to {
+          transform: translateX(0);
+          opacity: 1;
         }
-        .toolbar-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            padding-right: 12px;
-            border-right: 1px solid #444;
+      }
+
+      .stat-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 8px 0;
+      }
+      .stat-row .icon {
+        width: 16px;
+        height: 16px;
+        stroke: #4ec9b0;
+      }
+
+      /* Unified loading indicator */
+      .loading-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #2d2d30;
+        padding: 14px 24px;
+        border-radius: 8px;
+        border: 1px solid #555;
+        z-index: 150;
+        font-size: 13px;
+        color: #4ec9b0;
+        display: none;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        align-items: center;
+        gap: 10px;
+      }
+      .loading-overlay.visible {
+        display: flex;
+      }
+      .loading-overlay .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #4ec9b0;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
         }
-        .toolbar-group:last-child {
-            border-right: none;
-        }
-        button,
-        select,
-        input {
-            background: #333;
-            color: #ccc;
-            border: 1px solid #555;
-            padding: 8px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        button {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        button:hover,
-        select:hover {
-            background: #404040;
-            color: #fff;
-            border-color: #666;
-        }
-        button:hover .icon {
-            stroke: #fff;
-        }
-        select {
-            outline: none;
-        }
-        input[type="range"] {
-            width: 100px;
-            padding: 0;
-        }
-        .icon {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-        .status-bar {
-            display: flex;
-            gap: 20px;
-            padding: 8px 12px;
-            background: #1e1e1e;
-            border-top: 1px solid #333;
-            font-size: 11px;
-            color: #888;
-        }
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .editor-container {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            position: relative;
-        }
-        .CodeMirror {
-            flex: 1 !important;
-            font-size: 15px;
-        }
-        .CodeMirror-scrollbar-filler,
-        .CodeMirror-gutter-filler {
-            background-color: #1e1e1e;
-        }
-        .search-box {
-            display: none;
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #333;
-            padding: 8px;
-            border-radius: 4px;
-            z-index: 100;
-            border: 1px solid #555;
-        }
-        .search-box.active {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .search-box input {
-            width: 150px;
-            padding: 6px 10px;
-            background: #444;
-            border: 1px solid #555;
-            color: #ccc;
-        }
-        .auto-save-indicator {
-            position: absolute;
-            top: 12px;
-            right: 20px;
-            font-size: 10px;
-            color: #888;
-            z-index: 99;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .auto-save-indicator .icon {
-            width: 12px;
-            height: 12px;
-        }
-        .auto-save-indicator.saved .icon {
-            stroke: #4ec9b0;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal.active {
-            display: flex;
-        }
-        .modal-content {
-            background: #252526;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #555;
-            min-width: 400px;
-            max-width: 600px;
-        }
-        .modal-content h3 {
-            margin-bottom: 15px;
-            color: #d4d4d4;
-        }
-        .modal-content textarea {
-            width: 100%;
-            height: 200px;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            border: 1px solid #555;
-            padding: 10px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 12px;
-            resize: vertical;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            justify-content: flex-end;
-        }
-        .success-message {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #4ec9b0;
-            color: #1e1e1e;
-            padding: 10px 15px;
-            border-radius: 4px;
-            font-size: 12px;
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        .stat-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 8px 0;
-        }
-        .stat-row .icon {
-            width: 16px;
-            height: 16px;
-            stroke: #4ec9b0;
-        }
+      }
+      .cm-searching {
+        background-color: #4ec9b0 !important;
+        color: #1e1e1e !important;
+        border-radius: 2px;
+      }
+
+      .cm-searching-current {
+        background-color: #f1c40f !important;
+        color: #1e1e1e !important;
+        border-radius: 2px;
+        box-shadow: 0 0 0 2px #f1c40f;
+      }
     </style>
-</head>
-<body>
-    <!-- SVG Icon Sprite (optimized, defined once) -->
-    <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
-        <symbol id="icon-paste" viewBox="0 0 24 24">
-            <rect x="8" y="2" width="8" height="4" rx="1"/>
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-        </symbol>
-        <symbol id="icon-copy" viewBox="0 0 24 24">
-            <rect x="9" y="9" width="13" height="13" rx="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </symbol>
-        <symbol id="icon-download" viewBox="0 0 24 24">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-        </symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </symbol>
-        <symbol id="icon-wrap" viewBox="0 0 24 24">
-            <path d="M3 6h18"/>
-            <path d="M3 12h15a3 3 0 1 1 0 6h-4"/>
-            <polyline points="14 15 11 18 14 21"/>
-        </symbol>
-        <symbol id="icon-stats" viewBox="0 0 24 24">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-        </symbol>
-        <symbol id="icon-undo" viewBox="0 0 24 24">
-            <polyline points="1 4 1 10 7 10"/>
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-        </symbol>
-        <symbol id="icon-redo" viewBox="0 0 24 24">
-            <polyline points="23 4 23 10 17 10"/>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-        </symbol>
-        <symbol id="icon-clear" viewBox="0 0 24 24">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            <line x1="10" y1="11" x2="10" y2="17"/>
-            <line x1="14" y1="11" x2="14" y2="17"/>
-        </symbol>
-        <symbol id="icon-close" viewBox="0 0 24 24">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
-        </symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24">
-            <polyline points="20 6 9 17 4 12"/>
-        </symbol>
-        <symbol id="icon-clock" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-        </symbol>
-        <symbol id="icon-file" viewBox="0 0 24 24">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
-        </symbol>
-        <symbol id="icon-book" viewBox="0 0 24 24">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        </symbol>
-        <symbol id="icon-type" viewBox="0 0 24 24">
-            <polyline points="4 7 4 4 20 4 20 7"/>
-            <line x1="9" y1="20" x2="15" y2="20"/>
-            <line x1="12" y1="4" x2="12" y2="20"/>
-        </symbol>
+  </head>
+  <body>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      style="display: none"
+      aria-hidden="true"
+    >
+      <symbol id="icon-paste" viewBox="0 0 24 24">
+        <rect x="8" y="2" width="8" height="4" rx="1" />
+        <path
+          d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+        />
+      </symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="13" height="13" rx="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      </symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </symbol>
+      <symbol id="icon-wrap" viewBox="0 0 24 24">
+        <path d="M3 6h18" />
+        <path d="M3 12h15a3 3 0 1 1 0 6h-4" />
+        <polyline points="14 15 11 18 14 21" />
+      </symbol>
+      <symbol id="icon-stats" viewBox="0 0 24 24">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </symbol>
+      <symbol id="icon-undo" viewBox="0 0 24 24">
+        <polyline points="1 4 1 10 7 10" />
+        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+      </symbol>
+      <symbol id="icon-redo" viewBox="0 0 24 24">
+        <polyline points="23 4 23 10 17 10" />
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+      </symbol>
+      <symbol id="icon-clear" viewBox="0 0 24 24">
+        <polyline points="3 6 5 6 21 6" />
+        <path
+          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+        />
+        <line x1="10" y1="11" x2="10" y2="17" />
+        <line x1="14" y1="11" x2="14" y2="17" />
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12" />
+      </symbol>
+      <symbol id="icon-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </symbol>
+      <symbol id="icon-file" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </symbol>
+      <symbol id="icon-book" viewBox="0 0 24 24">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+        <path
+          d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+        />
+      </symbol>
+      <symbol id="icon-type" viewBox="0 0 24 24">
+        <polyline points="4 7 4 4 20 4 20 7" />
+        <line x1="9" y1="20" x2="15" y2="20" />
+        <line x1="12" y1="4" x2="12" y2="20" />
+      </symbol>
     </svg>
 
-    <!-- Toolbar -->
     <div class="toolbar">
-        <div class="toolbar-group">
-            <select id="lang">
-                <option value="javascript">JavaScript</option>
-                <option value="htmlmixed">HTML</option>
-                <option value="css">CSS</option>
-                <option value="python">Python</option>
-                <option value="xml">XML / SVG</option>
-                <option value="markdown">Markdown</option>
-                <option value="sql">SQL</option>
-                <option value="shell">Shell</option>
-                <option value="clike">C / C++ / Java</option>
-                <option value="null">Plain Text</option>
-            </select>
-        </div>
-        <div class="toolbar-group">
-            <label for="fontSize" style="font-size: 11px;">Font:</label>
-            <input type="range" id="fontSize" min="10" max="24" value="15" style="width: 80px;">
-            <span id="fontSizeDisplay" style="font-size: 11px; min-width: 25px;">15px</span>
-        </div>
-        <div class="toolbar-group">
-            <button onclick="pasteCode()" title="Paste from clipboard">
-                <svg class="icon" aria-hidden="true"><use href="#icon-paste"/></svg>
-                Paste
-            </button>
-            <button onclick="copyAll()" title="Copy all code">
-                <svg class="icon" aria-hidden="true"><use href="#icon-copy"/></svg>
-                Copy
-            </button>
-            <button onclick="downloadCode()" title="Download code">
-                <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg>
-                Download
-            </button>
-        </div>
-        <div class="toolbar-group">
-            <button onclick="toggleSearch()" title="Search code">
-                <svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>
-                Search
-            </button>
-            <button onclick="toggleLineWrap()" title="Toggle line wrap">
-                <svg class="icon" aria-hidden="true"><use href="#icon-wrap"/></svg>
-                Wrap
-            </button>
-            <button onclick="openStats()" title="Show stats">
-                <svg class="icon" aria-hidden="true"><use href="#icon-stats"/></svg>
-                Stats
-            </button>
-        </div>
-        <div class="toolbar-group">
-            <button onclick="undo()" title="Undo">
-                <svg class="icon" aria-hidden="true"><use href="#icon-undo"/></svg>
-                Undo
-            </button>
-            <button onclick="redo()" title="Redo">
-                <svg class="icon" aria-hidden="true"><use href="#icon-redo"/></svg>
-                Redo
-            </button>
-            <button onclick="clearAll()" title="Clear all">
-                <svg class="icon" aria-hidden="true"><use href="#icon-clear"/></svg>
-                Clear
-            </button>
-        </div>
-        <div class="auto-save-indicator saved" id="autoSaveIndicator">
-            <svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg>
-            <span>Saved</span>
-        </div>
+      <div class="toolbar-group">
+        <select id="lang">
+          <option value="null">Plain Text</option>
+          <option value="markdown">Markdown</option>
+
+          <option value="htmlmixed">HTML</option>
+          <option value="css">CSS</option>
+          <option value="javascript">JavaScript</option>
+          <option value="typescript">TypeScript</option>
+          <option value="php">PHP</option>
+
+          <option value="json">JSON</option>
+          <option value="xml">XML / SVG</option>
+          <option value="yaml">YAML</option>
+          <option value="toml">TOML</option>
+          <option value="ini">INI Config</option>
+
+          <option value="python">Python</option>
+          <option value="clike">C / C++ / Java</option>
+          <option value="go">Go</option>
+          <option value="rust">Rust</option>
+          <option value="ruby">Ruby</option>
+          <option value="sql">SQL</option>
+          <option value="shell">Shell / Bash</option>
+          <option value="dockerfile">Dockerfile</option>
+        </select>
+      </div>
+
+      <div class="toolbar-group">
+        <label for="fontSize" style="font-size: 11px">Font:</label>
+        <input
+          type="range"
+          id="fontSize"
+          min="10"
+          max="24"
+          value="15"
+          style="width: 80px"
+        />
+        <span id="fontSizeDisplay" style="font-size: 11px; min-width: 25px"
+          >15px</span
+        >
+      </div>
+      <div class="toolbar-group">
+        <button onclick="pasteCode()" title="Paste at cursor">
+          <svg class="icon"><use href="#icon-paste" /></svg> Paste
+        </button>
+        <button onclick="copyAll()" title="Copy all code">
+          <svg class="icon"><use href="#icon-copy" /></svg> Copy
+        </button>
+        <button onclick="downloadCode()" title="Download code">
+          <svg class="icon"><use href="#icon-download" /></svg> Download
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button onclick="toggleSearch()" title="Search (Ctrl+F)">
+          <svg class="icon"><use href="#icon-search" /></svg> Search
+        </button>
+        <button onclick="toggleLineWrap()" title="Toggle line wrap">
+          <svg class="icon"><use href="#icon-wrap" /></svg> Wrap
+        </button>
+        <button onclick="openStats()" title="Show stats">
+          <svg class="icon"><use href="#icon-stats" /></svg> Stats
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button onclick="undo()" title="Undo">
+          <svg class="icon"><use href="#icon-undo" /></svg> Undo
+        </button>
+        <button onclick="redo()" title="Redo">
+          <svg class="icon"><use href="#icon-redo" /></svg> Redo
+        </button>
+        <button onclick="clearAll()" title="Clear all">
+          <svg class="icon"><use href="#icon-clear" /></svg> Clear
+        </button>
+      </div>
+      <div class="auto-save-indicator saved" id="autoSaveIndicator">
+        <svg class="icon"><use href="#icon-check" /></svg>
+        <span>Saved</span>
+      </div>
     </div>
-    <!-- Editor -->
+
     <div class="editor-container">
-        <textarea id="code"></textarea>
-        <div class="search-box" id="searchBox">
-            <input type="text" id="searchInput" placeholder="Search...">
-            <button onclick="findNext()" style="padding: 6px 10px;">Next</button>
-            <button onclick="closeSearch()" style="padding: 6px 10px;" title="Close">
-                <svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg>
-            </button>
-        </div>
+      <textarea id="code"></textarea>
+
+      <div class="search-box" id="searchBox">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search…"
+          autocomplete="off"
+        />
+        <span class="search-info" id="searchInfo">0 / 0</span>
+        <button onclick="findPrev()" title="Previous (Shift+Enter)">↑</button>
+        <button onclick="findNext()" title="Next (Enter)">↓</button>
+        <button onclick="closeSearch()" title="Close (Esc)">
+          <svg class="icon"><use href="#icon-close" /></svg>
+        </button>
+      </div>
+
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span id="loadingText">Loading…</span>
+      </div>
     </div>
-    <!-- Status Bar -->
+
     <div class="status-bar">
-        <div class="status-item">
-            Lines: <span id="lineCount">0</span>
-        </div>
-        <div class="status-item">
-            Words: <span id="wordCount">0</span>
-        </div>
-        <div class="status-item">
-            Characters: <span id="charCount">0</span>
-        </div>
-        <div class="status-item">
-            Mode: <span id="modeDisplay">JavaScript</span>
-        </div>
-        <div class="status-item" id="cursorPos">Ln 1, Col 1</div>
+      <div class="status-item">Lines: <span id="lineCount">0</span></div>
+      <div class="status-item">Words: <span id="wordCount">0</span></div>
+      <div class="status-item">Characters: <span id="charCount">0</span></div>
+      <div class="status-item">
+        Mode: <span id="modeDisplay">JavaScript</span>
+      </div>
+      <div class="status-item" id="cursorPos">Ln 1, Col 1</div>
     </div>
-    <!-- Modals -->
+
     <div class="modal" id="statsModal">
-        <div class="modal-content">
-            <h3>Code Statistics</h3>
-            <div style="margin: 15px 0;">
-                <div class="stat-row">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-file"/></svg>
-                    Lines: <strong id="statsLines">0</strong>
-                </div>
-                <div class="stat-row">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-book"/></svg>
-                    Words: <strong id="statsWords">0</strong>
-                </div>
-                <div class="stat-row">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-type"/></svg>
-                    Characters: <strong id="statsChars">0</strong>
-                </div>
-                <div class="stat-row">
-                    <svg class="icon" aria-hidden="true"><use href="#icon-clock"/></svg>
-                    Estimated Read Time: <strong id="statsReadTime">0 sec</strong>
-                </div>
-            </div>
-            <div class="modal-buttons">
-                <button onclick="closeStats()">Close</button>
-            </div>
+      <div class="modal-content">
+        <h3>Code Statistics</h3>
+        <div style="margin: 15px 0">
+          <div class="stat-row">
+            <svg class="icon"><use href="#icon-file" /></svg> Lines:
+            <strong id="statsLines">0</strong>
+          </div>
+          <div class="stat-row">
+            <svg class="icon"><use href="#icon-book" /></svg> Words:
+            <strong id="statsWords">0</strong>
+          </div>
+          <div class="stat-row">
+            <svg class="icon"><use href="#icon-type" /></svg> Characters:
+            <strong id="statsChars">0</strong>
+          </div>
+          <div class="stat-row">
+            <svg class="icon"><use href="#icon-clock" /></svg> Estimated Read
+            Time: <strong id="statsReadTime">0 sec</strong>
+          </div>
         </div>
+        <div class="modal-buttons">
+          <button onclick="closeStats()">Close</button>
+        </div>
+      </div>
     </div>
-    <!-- Scripts -->
+
+    <!-- Core scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
+
     <script>
-        // Initialize CodeMirror
-        const editor = CodeMirror.fromTextArea(document.getElementById('code'), {
-            lineNumbers: true,
-            theme: 'dracula',
-            mode: 'javascript',
-            indentUnit: 2,
-            tabSize: 2,
-            lineWrapping: true,
-            autofocus: true,
-            matchBrackets: true,
-            autoCloseBrackets: true,
-            styleActiveLine: true,
-            highlightSelectionMatches: { showToken: /\w/, annotateScrollbar: true }
+      const CDN =
+        'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/';
+      const loadedFiles = new Set();
+
+      const modeMap = {
+        null: [],
+        markdown: ['markdown/markdown.min.js', 'xml/xml.min.js'],
+        htmlmixed: [
+          'xml/xml.min.js',
+          'javascript/javascript.min.js',
+          'css/css.min.js',
+          'htmlmixed/htmlmixed.min.js',
+        ],
+        css: ['css/css.min.js'],
+        javascript: ['javascript/javascript.min.js'],
+        typescript: ['javascript/javascript.min.js'],
+        php: [
+          'xml/xml.min.js',
+          'javascript/javascript.min.js',
+          'css/css.min.js',
+          'htmlmixed/htmlmixed.min.js',
+          'clike/clike.min.js',
+          'php/php.min.js',
+        ],
+        json: ['javascript/javascript.min.js'],
+        xml: ['xml/xml.min.js'],
+        yaml: ['yaml/yaml.min.js'],
+        toml: ['toml/toml.min.js'],
+        ini: ['properties/properties.min.js'],
+        python: ['python/python.min.js'],
+        clike: ['clike/clike.min.js'],
+        go: ['go/go.min.js'],
+        rust: ['rust/rust.min.js'],
+        ruby: ['ruby/ruby.min.js'],
+        sql: ['sql/sql.min.js'],
+        shell: ['shell/shell.min.js'],
+        dockerfile: ['dockerfile/dockerfile.min.js'],
+      };
+
+      function getCodeMirrorMode(value) {
+        switch (value) {
+          case 'json':
+            return 'application/json';
+          case 'typescript':
+            return 'text/typescript';
+          case 'clike':
+            return 'text/x-c++src';
+          case 'ini':
+            return 'text/x-properties';
+          case 'null':
+            return null;
+          default:
+            return value;
+        }
+      }
+
+      function showLoading(text) {
+        const el = document.getElementById('loadingOverlay');
+        if (!el) return;
+        document.getElementById('loadingText').textContent = text || 'Loading…';
+        el.classList.add('visible');
+      }
+      function hideLoading() {
+        const el = document.getElementById('loadingOverlay');
+        if (el) el.classList.remove('visible');
+      }
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          if (document.querySelector(`script[src="${src}"]`)) {
+            resolve();
+            return;
+          }
+          const s = document.createElement('script');
+          s.src = src;
+          s.onload = resolve;
+          s.onerror = () => reject(new Error('Failed to load ' + src));
+          document.head.appendChild(s);
         });
-        // Load saved code from localStorage
-        const savedCode = localStorage.getItem('editorCode');
-        if (savedCode) {
-            editor.setValue(savedCode);
+      }
+
+      async function ensureMode(mode) {
+        if (mode === 'null') return;
+        const files = modeMap[mode] || [];
+        if (files.length === 0) return;
+
+        const needsLoading = files.some((f) => !loadedFiles.has(f));
+        if (!needsLoading) return;
+
+        showLoading('Loading language mode…');
+        try {
+          await Promise.all(
+            files.map(async (file) => {
+              if (!loadedFiles.has(file)) {
+                await loadScript(CDN + file);
+                loadedFiles.add(file);
+              }
+            }),
+          );
+        } catch (e) {
+          console.error(e);
+          alert('Failed to load language mode: ' + e.message);
+        } finally {
+          hideLoading();
         }
-        // Auto-save to localStorage
-        let saveTimeout;
-        const autoSaveEl = document.getElementById('autoSaveIndicator');
-        editor.on('change', function() {
-            clearTimeout(saveTimeout);
-            autoSaveEl.classList.remove('saved');
-            autoSaveEl.innerHTML = `
-                <svg class="icon" aria-hidden="true"><use href="#icon-clock"/></svg>
-                <span>Saving...</span>
-            `;
-           
-            saveTimeout = setTimeout(() => {
-                localStorage.setItem('editorCode', editor.getValue());
-                autoSaveEl.classList.add('saved');
-                autoSaveEl.innerHTML = `
-                    <svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg>
-                    <span>Saved</span>
-                `;
-                updateStats();
-                updateCursorPosition();
-            }, 1000);
+      }
+
+      const editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+        lineNumbers: true,
+        theme: 'dracula',
+        mode: 'javascript',
+        indentUnit: 2,
+        tabSize: 2,
+        lineWrapping: true,
+        autofocus: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        styleActiveLine: true,
+        highlightSelectionMatches: { showToken: /\w/, annotateScrollbar: true },
+      });
+
+      loadScript(CDN + 'javascript/javascript.min.js').then(() => {
+        loadedFiles.add('javascript/javascript.min.js');
+      });
+
+      document
+        .getElementById('lang')
+        .addEventListener('change', async function () {
+          const value = this.value;
+          const label = this.options[this.selectedIndex].text;
+
+          await ensureMode(value);
+
+          const cmMode = getCodeMirrorMode(value);
+          editor.setOption('mode', cmMode);
+
+          document.getElementById('modeDisplay').textContent = label;
         });
-        // Language switcher
-        document.getElementById('lang').addEventListener('change', function() {
-            const mode = this.value === 'null' ? null : this.value;
-            editor.setOption('mode', mode);
-            document.getElementById('modeDisplay').textContent = this.options[this.selectedIndex].text;
+
+      const savedCode = localStorage.getItem('editorCode');
+      if (savedCode) editor.setValue(savedCode);
+
+      let saveTimeout;
+      const autoSaveEl = document.getElementById('autoSaveIndicator');
+
+      editor.on('change', () => {
+        clearTimeout(saveTimeout);
+        autoSaveEl.classList.remove('saved');
+        autoSaveEl.innerHTML = `<svg class="icon"><use href="#icon-clock"/></svg><span>Saving...</span>`;
+        saveTimeout = setTimeout(() => {
+          localStorage.setItem('editorCode', editor.getValue());
+          autoSaveEl.classList.add('saved');
+          autoSaveEl.innerHTML = `<svg class="icon"><use href="#icon-check"/></svg><span>Saved</span>`;
+          updateStats();
+        }, 1000);
+      });
+
+      document
+        .getElementById('lang')
+        .addEventListener('change', async function () {
+          const mode = this.value === 'null' ? null : this.value;
+          const label = this.options[this.selectedIndex].text;
+          await ensureMode(mode || 'null');
+          editor.setOption('mode', mode);
+          document.getElementById('modeDisplay').textContent = label;
         });
-        // Font size control
-        document.getElementById('fontSize').addEventListener('input', function() {
-            editor.getWrapperElement().style.fontSize = this.value + 'px';
-            document.getElementById('fontSizeDisplay').textContent = this.value + 'px';
+
+      document
+        .getElementById('fontSize')
+        .addEventListener('input', function () {
+          editor.getWrapperElement().style.fontSize = this.value + 'px';
+          document.getElementById('fontSizeDisplay').textContent =
+            this.value + 'px';
         });
-        // Paste button
-        async function pasteCode() {
-            try {
-                const text = await navigator.clipboard.readText();
-                editor.setValue(text);
-                showMessage('Code pasted successfully!');
-            } catch (err) {
-                alert('Failed to read clipboard. Please check permissions.');
-            }
+
+      async function pasteCode() {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (!text) return;
+
+          editor.replaceSelection(text, 'around');
+          editor.focus();
+          showMessage('Pasted!');
+        } catch {
+          alert('Failed to read clipboard. Please check permissions.');
         }
-        // Copy button
-        function copyAll() {
-            const text = editor.getValue();
-            navigator.clipboard.writeText(text).then(() => {
-                showMessage('Code copied to clipboard!');
-            });
+      }
+
+      function copyAll() {
+        navigator.clipboard
+          .writeText(editor.getValue())
+          .then(() => showMessage('Code copied!'));
+      }
+
+      function downloadCode() {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(
+          new Blob([editor.getValue()], { type: 'text/plain' }),
+        );
+        a.download = 'code.txt';
+        a.click();
+        showMessage('Code downloaded!');
+      }
+
+      let wrapped = true;
+      function toggleLineWrap() {
+        wrapped = !wrapped;
+        editor.setOption('lineWrapping', wrapped);
+      }
+
+      function clearAll() {
+        if (confirm('Clear all code? This cannot be undone.')) {
+          editor.setValue('');
+          editor.focus();
         }
-        // Download button
-        function downloadCode() {
-            const text = editor.getValue();
-            const a = document.createElement('a');
-            const blob = new Blob([text], { type: 'text/plain' });
-            a.href = URL.createObjectURL(blob);
-            a.download = 'code.txt';
-            a.click();
-            showMessage('Code downloaded!');
+      }
+
+      function undo() {
+        editor.execCommand('undo');
+      }
+      function redo() {
+        editor.execCommand('redo');
+      }
+
+      let searchState = {
+        query: '',
+        matches: [],
+        current: -1,
+      };
+
+      function clearSearchHighlights() {
+        editor.getAllMarks().forEach((m) => {
+          if (
+            m.className === 'cm-searching' ||
+            m.className === 'cm-searching-current' ||
+            m.className === 'CodeMirror-searching'
+          ) {
+            m.clear();
+          }
+        });
+        if (editor.state.search) editor.state.search = null;
+        searchState = { query: '', matches: [], current: -1 };
+        document.getElementById('searchInfo').textContent = '0 / 0';
+        document.getElementById('searchInfo').classList.remove('has-results');
+      }
+
+      function performSearch(query) {
+        clearSearchHighlights();
+        if (!query) return;
+
+        showLoading('Searching…');
+
+        setTimeout(() => {
+          searchState.query = query;
+          searchState.matches = [];
+          searchState.current = -1;
+
+          const cursor = editor.getSearchCursor(
+            query,
+            { line: 0, ch: 0 },
+            { caseFold: true },
+          );
+
+          while (cursor.findNext()) {
+            const from = cursor.from();
+            const to = cursor.to();
+            searchState.matches.push({ from, to });
+            editor.markText(from, to, { className: 'cm-searching' });
+          }
+
+          updateSearchInfo();
+          if (searchState.matches.length > 0) {
+            searchState.current = 0;
+            jumpToMatch(0);
+          }
+
+          hideLoading();
+        }, 10);
+      }
+
+      function updateSearchInfo() {
+        const info = document.getElementById('searchInfo');
+        const total = searchState.matches.length;
+        const current = total === 0 ? 0 : searchState.current + 1;
+        info.textContent = `${current} / ${total}`;
+        if (total > 0) info.classList.add('has-results');
+        else info.classList.remove('has-results');
+      }
+
+      function jumpToMatch(index) {
+        if (searchState.matches.length === 0) return;
+
+        editor.getAllMarks().forEach((m) => {
+          if (m.className === 'cm-searching-current') {
+            m.clear();
+          }
+        });
+
+        searchState.matches.forEach((m) => {
+          editor.markText(m.from, m.to, { className: 'cm-searching' });
+        });
+
+        const current = searchState.matches[index];
+        editor.markText(current.from, current.to, {
+          className: 'cm-searching-current',
+        });
+
+        editor.setSelection(current.from, current.to);
+        editor.scrollIntoView({ from: current.from, to: current.to }, 80);
+
+        searchState.current = index;
+        updateSearchInfo();
+      }
+
+      function findNext() {
+        const query = document.getElementById('searchInput').value;
+        if (!query) return;
+        if (query !== searchState.query) {
+          performSearch(query);
+          return;
         }
-        // Line wrap toggle
-        let wrapped = true;
-        function toggleLineWrap() {
-            wrapped = !wrapped;
-            editor.setOption('lineWrapping', wrapped);
+        if (searchState.matches.length === 0) return;
+        searchState.current =
+          (searchState.current + 1) % searchState.matches.length;
+        jumpToMatch(searchState.current);
+      }
+
+      function findPrev() {
+        const query = document.getElementById('searchInput').value;
+        if (!query) return;
+        if (query !== searchState.query) {
+          performSearch(query);
+          return;
         }
-        // Clear all
-        function clearAll() {
-            if (confirm('Clear all code? This cannot be undone.')) {
-                editor.setValue('');
-                editor.focus();
-            }
+        if (searchState.matches.length === 0) return;
+        searchState.current =
+          (searchState.current - 1 + searchState.matches.length) %
+          searchState.matches.length;
+        jumpToMatch(searchState.current);
+      }
+
+      function toggleSearch() {
+        const box = document.getElementById('searchBox');
+        if (box.classList.contains('active')) {
+          closeSearch();
+        } else {
+          box.classList.add('active');
+          const input = document.getElementById('searchInput');
+          input.focus();
+          input.select();
         }
-        // Undo/Redo
-        function undo() {
-            editor.execCommand('undo');
+      }
+
+      function closeSearch() {
+        document.getElementById('searchBox').classList.remove('active');
+        clearSearchHighlights();
+        editor.focus();
+      }
+
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('input', () => {
+        const q = searchInput.value;
+        if (q.length === 0) clearSearchHighlights();
+        else performSearch(q);
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (e.shiftKey) findPrev();
+          else findNext();
         }
-        function redo() {
-            editor.execCommand('redo');
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeSearch();
         }
-        // Search functionality
-        function toggleSearch() {
-            const box = document.getElementById('searchBox');
-            box.classList.toggle('active');
-            if (box.classList.contains('active')) {
-                document.getElementById('searchInput').focus();
-            }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+          e.preventDefault();
+          toggleSearch();
         }
-        function closeSearch() {
-            document.getElementById('searchBox').classList.remove('active');
+        if (e.key === 'Escape') {
+          const box = document.getElementById('searchBox');
+          if (box.classList.contains('active')) {
+            e.preventDefault();
+            closeSearch();
+          }
         }
-        function findNext() {
-            const text = document.getElementById('searchInput').value;
-            if (text) {
-                editor.execCommand('find');
-            }
-        }
-        // Stats
-        function updateStats() {
-            const text = editor.getValue();
-            const lines = text.split('\n').length;
-            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-            const chars = text.length;
-           
-            document.getElementById('lineCount').textContent = lines;
-            document.getElementById('wordCount').textContent = words;
-            document.getElementById('charCount').textContent = chars;
-        }
-        function openStats() {
-            const text = editor.getValue();
-            const lines = text.split('\n').length;
-            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-            const chars = text.length;
-            const readTime = Math.ceil(words / 200);
-            document.getElementById('statsLines').textContent = lines;
-            document.getElementById('statsWords').textContent = words;
-            document.getElementById('statsChars').textContent = chars;
-            document.getElementById('statsReadTime').textContent = readTime + ' sec';
-            document.getElementById('statsModal').classList.add('active');
-        }
-        function closeStats() {
-            document.getElementById('statsModal').classList.remove('active');
-        }
-        // Cursor position
-        function updateCursorPosition() {
-            const cursor = editor.getCursor();
-            document.getElementById('cursorPos').textContent = `Ln ${cursor.line + 1}, Col ${cursor.ch + 1}`;
-        }
-        editor.on('cursorActivity', updateCursorPosition);
-        // Success message
-        function showMessage(msg) {
-            const div = document.createElement('div');
-            div.className = 'success-message';
-            div.textContent = msg;
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 2000);
-        }
-        // Initial stats
-        updateStats();
+      });
+
+      function updateStats() {
+        const text = editor.getValue();
+        const lines = text.split('\n').length;
+        const words = text
+          .trim()
+          .split(/\s+/)
+          .filter((w) => w.length > 0).length;
+        document.getElementById('lineCount').textContent = lines;
+        document.getElementById('wordCount').textContent = words;
+        document.getElementById('charCount').textContent = text.length;
+      }
+
+      function openStats() {
+        const text = editor.getValue();
+        const lines = text.split('\n').length;
+        const words = text
+          .trim()
+          .split(/\s+/)
+          .filter((w) => w.length > 0).length;
+        const readTime = Math.ceil(words / 200) || 0;
+        document.getElementById('statsLines').textContent = lines;
+        document.getElementById('statsWords').textContent = words;
+        document.getElementById('statsChars').textContent = text.length;
+        document.getElementById('statsReadTime').textContent =
+          readTime + ' sec';
+        document.getElementById('statsModal').classList.add('active');
+      }
+      function closeStats() {
+        document.getElementById('statsModal').classList.remove('active');
+      }
+
+      function updateCursorPosition() {
+        const c = editor.getCursor();
+        document.getElementById('cursorPos').textContent =
+          `Ln ${c.line + 1}, Col ${c.ch + 1}`;
+      }
+      editor.on('cursorActivity', updateCursorPosition);
+
+      function showMessage(msg) {
+        const div = document.createElement('div');
+        div.className = 'success-message';
+        div.textContent = msg;
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 2000);
+      }
+
+      updateStats();
     </script>
-</body>
+  </body>
 </html>
